@@ -1,0 +1,161 @@
+SELECT *
+FROM reservations r , classes c , airport_lines apl, airplanes ap
+WHERE
+r.class_id = c.class_id and r.flight_number = apl.flight_number and apl.plane_code = ap.plane_code
+
+CREATE OR REPLACE PROCEDUER Add_reservation_to_airplane AS
+BEGIN
+
+
+SELECT ap.plane_code ,al.first_class,al.business_class,al.economy_class,
+	ap.first_class AS First_class_cap,
+	ap.business_class AS Business_class_cap, 
+	ap.economy_class AS economy_class_cap
+FROM airport_lines al, airplanes ap
+WHERE
+al.plane_code = ap.plane_code;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE [OR REPLACE] FUNCTION Can_add_client
+	(x_class_name varchar2, x_flight_number number)
+RETURN boolean  
+AS  
+adding_result boolean := true;
+capacity number(3) :=0;
+reserved number(3) :=0;
+BEGIN  
+     if lower(x_class_name) = 'first_class' then
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number
+     END IF;
+RETURN adding_result;
+END Can_add_client;
+
+///////////////////////////////////////////////////////////////////////
+
+CREATE OR REPLACE FUNCTION add_service(x_class_name varchar2, x_flight_number number)
+RETURN boolean
+is
+adding_result boolean := true;
+capacity number(3) :=0;
+reserved number(3) :=0;
+BEGIN  
+     if lower(x_class_name) = 'first_class' then
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+     elsif lower(x_class_name) = 'economy_class' then
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+     elsif lower(x_class_name) = 'business_class' then
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+     else
+	adding_result := false;
+     END IF;
+RETURN adding_result;
+END add_service;
+/
+**********************************************
+begin
+if add_service('First_class',1) then
+dbms_output.put_line('Function is doing Great');
+else
+dbms_output.put_line('Function is Fucked');
+end if;
+end;
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/*
+This function return either 'true' if you can add customer to a specific airplane on airport line 
+or 'false' if plane is full on airplane class you shosse.
+the variable that returned it is boolean data type.
+*/
+
+CREATE OR REPLACE FUNCTION add_service(x_class_name varchar2, x_flight_number number)
+RETURN boolean
+is
+adding_result boolean := true; --Will changed if plane has no space to add customer
+capacity number(3) :=0;
+reserved number(3) :=0;
+BEGIN 
+--FIRST CLASS IMPLEMENTATION
+     IF LOWER(x_class_name) = 'first_class' THEN
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+--ECONOMY CLASS IMPLEMENTATION
+     ELSIF LOWER(x_class_name) = 'economy_class' THEN
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+--BUSINESS CLASS IMPLEMENTATION
+     ELSIF LOWER(x_class_name) = 'business_class' then
+	SELECT 
+	al.first_class AS taken ,ap.first_class AS First_class_cap
+	INTO reserved, capacity
+	FROM 
+	airport_lines al, airplanes ap
+	WHERE
+	al.plane_code = ap.plane_code 
+	And al.flight_number = x_flight_number;
+--OTHERWISE
+     ELSE
+	adding_result := false;
+     END IF;
+--END CHICKING IF PLANE HAS FREE SPACE
+--
+--CHANGE VALUE FOR BOOLEAN VARIABLE FOR ADDING OR NOT
+IF reserved >= capacity THEN
+	adding_result := false;
+ELSE
+	adding_result := true;
+END IF;
+RETURN adding_result;
+--END
+END add_service;
+
